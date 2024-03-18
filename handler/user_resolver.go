@@ -43,6 +43,7 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) buildSchema() (graphql.Schema, error) {
+
 	userType := graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "User",
@@ -51,6 +52,12 @@ func (h *userHandler) buildSchema() (graphql.Schema, error) {
 					Type: graphql.String,
 				},
 				"username": &graphql.Field{
+					Type: graphql.String,
+				},
+				"email": &graphql.Field{
+					Type: graphql.String,
+				},
+				"password": &graphql.Field{
 					Type: graphql.String,
 				},
 			},
@@ -80,9 +87,33 @@ func (h *userHandler) buildSchema() (graphql.Schema, error) {
 		},
 	)
 
+	mutationType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Mutation",
+		Fields: graphql.Fields{
+			"Create": &graphql.Field{
+				Type:        userType,
+				Description: "Create new User",
+				Args: graphql.FieldConfigArgument{
+					"username": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"email": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"password": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: h.resolveCreateUser,
+			},
+		},
+	},
+	)
+
 	return graphql.NewSchema(
 		graphql.SchemaConfig{
-			Query: queryType,
+			Query:    queryType,
+			Mutation: mutationType,
 		},
 	)
 }
@@ -103,16 +134,31 @@ func (h *userHandler) resolveUser(p graphql.ResolveParams) (interface{}, error) 
 
 func (h *userHandler) resolveUsers(p graphql.ResolveParams) (interface{}, error) {
 	// Retrieve users data using core logic
-	// var user = []core.GetUser{
-	// 	{
-	// 		Username: "Chicha Morada",
-	// 	}}
 	user, err := h.userCore.GetUsers()
 	if err != nil {
 		return nil, err // Return error if user retrieval fails
 	}
 	//fmt.Println(user)
 	return user, nil
+}
+
+func (h *userHandler) resolveCreateUser(p graphql.ResolveParams) (interface{}, error) {
+	username, _ := p.Args["username"].(string)
+	email, _ := p.Args["email"].(string)
+	password, _ := p.Args["password"].(string)
+
+	user := core.New_user_req{
+		Username: username,
+		Email:    email,
+		Password: password,
+	}
+
+	userResp, err := h.userCore.NewUser(user)
+	if err != nil {
+		return nil, err // Return error if user retrieval fails
+	}
+	//fmt.Println(user)
+	return userResp, nil
 }
 
 func executeQuery(query string, schema graphql.Schema) *graphql.Result {

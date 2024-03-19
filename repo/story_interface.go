@@ -1,31 +1,26 @@
 package repo
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
 
-// type StoryContent struct {
-// 	ID            primitive.ObjectID `bson:"_id,omitempty"`
-// 	StoryID       primitive.ObjectID `bson:"story_id"`
-// 	SectionNumber int                `bson:"section_number"`
-// 	ContentType   string             `bson:"content_type"`
-// 	Content       map[int]string     `bson:"content"`
-// }
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
-//type story_type struct{}
 type Story struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	Title   string             `bson:"title"`
-	Content map[int]struct {
-		Text string `bson:"text"`
-		Type string `bson:"type"`
-	} `bson:"content"`
-	UserID primitive.ObjectID `bson:"user_id"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Title       string             `bson:"title"`
+	Description string             `bson:"description"`
+	DueDate     time.Time          `bson:"due_date"`
+	Priority    string             `bson:"priority"`
+	Status      string             `bson:"status"`
+	Labels      []string           `bson:"labels"`
+	AssignedTo  string             `bson:"assigned_to"`
+	CreatedAt   time.Time          `bson:"created_at"`
+	UpdatedAt   time.Time          `bson:"updated_at"`
+	IsDeleted   bool               `bson:"is_deleted"`
 }
 
 type StoryRepo interface {
-	GetStoryByID(primitive.ObjectID) (*Story, error)
+	GetStoryByID(string) (*Story, error)
 	CreateStory(Story) (*Story, error)
 }
-
-// type StoryContentRepo interface {
-// 	GetStoryContentByID(primitive.ObjectID) (StoryContent, error)
-// }

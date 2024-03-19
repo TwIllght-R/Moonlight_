@@ -33,14 +33,16 @@ func (r *userRepo) GetUserById(id string) (*User, error) {
 
 func (r *userRepo) GetUserByEmail(email string) (*User, error) {
 	var user User
-	err := r.collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&user)
+	filter := bson.M{
+		"email":      email,
+		"is_deleted": bson.M{"$exists": false},
+	}
+	err := r.collection.FindOne(context.Background(), filter).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(user)
 	return &user, nil
 }
-
 func (r *userRepo) CreateUser(user User) (*User, error) {
 	id := primitive.NewObjectID()
 	user.User_Id = id.String()
@@ -54,7 +56,10 @@ func (r *userRepo) CreateUser(user User) (*User, error) {
 
 func (r *userRepo) GetAll() (*[]User, error) {
 	var users []User
-	cursor, err := r.collection.Find(context.Background(), bson.M{})
+	filter := bson.M{
+		"is_deleted": bson.M{"$exists": false},
+	}
+	cursor, err := r.collection.Find(context.Background(), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -66,42 +71,3 @@ func (r *userRepo) GetAll() (*[]User, error) {
 	}
 	return &users, nil
 }
-
-// type user_RepoDB struct {
-// 	db *sqlx.DB
-// }
-
-// func New_user_RepoDB(db *sqlx.DB) UserRepo {
-// 	return user_RepoDB{db: db}
-// }
-// func (r user_RepoDB) GetAll() ([]User, error) {
-// 	customers := []User{}
-// 	q := "select * from customers"
-// 	err := r.db.Select(&customers, q)
-// 	if err != nil {
-// 		return nil, err
-
-// 	}
-// 	return customers, nil
-// }
-
-// func (r user_RepoDB) CreateUser(user User) (*User, error) {
-// 	// query := "insert into users (customer_id, opening_date, account_type, amount, status) values (?, ?, ?, ?, ?)"
-// 	// result, err := r.db.Exec(
-// 	// 	query,
-// 	// user.Email
-// 	// )
-
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-
-// 	// id, err := result.LastInsertId()
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-
-// 	// acc.AccountID = int(id)
-
-// 	return &user, nil
-// }

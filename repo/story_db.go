@@ -16,13 +16,16 @@ func NewStoryRepo(collection *mongo.Collection) StoryRepo {
 	return &storyRepo{collection: collection}
 }
 
-func (r *storyRepo) GetStoryByID(id primitive.ObjectID) (*Story, error) {
+func (r *storyRepo) GetStoryByID(id string) (*Story, error) {
 	var story Story
-	err := r.collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&story)
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(user)
+	err = r.collection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&story)
+	if err != nil {
+		return nil, err
+	}
 	return &story, nil
 }
 

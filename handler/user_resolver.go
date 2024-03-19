@@ -8,25 +8,25 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-type UserHandler struct {
+type userHandler struct {
 	userCore core.UserCore
 	Schema   graphql.Schema
 }
 
-func NewUserHandler(userCore core.UserCore) *UserHandler {
+func NewUserHandler(userCore core.UserCore) *userHandler {
 	// Define GraphQL schema
 	schema, err := buildUserSchema(userCore)
 	if err != nil {
 		panic(err) // Handle schema initialization error
 	}
 
-	return &UserHandler{
+	return &userHandler{
 		userCore: userCore,
 		Schema:   schema,
 	}
 }
 
-func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return

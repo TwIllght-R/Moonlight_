@@ -49,9 +49,10 @@ func (r userCore) NewUser(req New_user_req) (*New_user_resp, error) {
 		return nil, err
 	}
 	u := repo.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: hashedPassword,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  hashedPassword,
+		CreatedAt: time.Now(),
 	}
 	newUser, err := r.userRepo.CreateUser(u)
 	if err != nil {

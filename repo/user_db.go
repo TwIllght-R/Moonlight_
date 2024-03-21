@@ -51,7 +51,7 @@ func (r *userRepo) CreateUser(user User) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
-	//auto id increment
+
 }
 
 func (r *userRepo) GetAll() (*[]User, error) {
@@ -70,4 +70,23 @@ func (r *userRepo) GetAll() (*[]User, error) {
 		return nil, err
 	}
 	return &users, nil
+}
+func (r *userRepo) UpdateUser(user User) (*User, error) {
+	_, err := r.collection.ReplaceOne(context.Background(), bson.M{"_id": user.User_Id}, user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+func (r *userRepo) DeleteUser(id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	var user User
+	err = r.collection.FindOneAndDelete(context.Background(), bson.M{"_id": objectID}).Decode(&user)
+	if err != nil {
+		return err
+	}
+	return nil
 }

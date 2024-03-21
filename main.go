@@ -19,9 +19,9 @@ func main() {
 	client := initDatabase()
 	initTimeZone()
 
-	userCollection := client.Database("lala").Collection("users")       //users
-	storyCollection := client.Database("lala").Collection("storyies")   //tasks
-	commentCollection := client.Database("lala").Collection("comments") //comments
+	userCollection := client.Database("Task").Collection("users")       //users
+	storyCollection := client.Database("Task").Collection("storyies")   //tasks
+	commentCollection := client.Database("Task").Collection("comments") //comments
 
 	//user
 	userRepo := repo.NewUserRepo(userCollection)

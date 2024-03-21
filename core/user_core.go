@@ -2,11 +2,13 @@ package core
 
 import (
 	"Moonlight_/repo"
+	"errors"
 	"log"
 
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -71,35 +73,75 @@ func (r userCore) NewUser(req New_user_req) (*New_user_resp, error) {
 
 }
 
-func (r userCore) GetUser(id string) (*GetUser, error) {
+func (r userCore) GetUser(id string) (*Get_user_resp, error) {
 	user, err := r.userRepo.GetUserById(id)
 	if err != nil {
+		if err.Error() == mongo.ErrNoDocuments.Error() {
+			return nil, errors.New("user not found")
+		}
 		log.Println(err)
-		return nil, err
+		return nil, errors.New("errrrrr")
 	}
-
-	resp := GetUser{
+	resp := Get_user_resp{
 		Username: user.Username,
-		// You might need to populate other fields of GetUser if needed
 	}
 
 	return &resp, nil
 }
 
-func (r userCore) GetUsers() (*[]GetUser, error) {
+func (r userCore) GetUsers() (*[]Get_user_resp, error) {
 	user, err := r.userRepo.GetAll()
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	custResponses := []GetUser{}
+	custResponses := []Get_user_resp{}
 	for _, customer := range *user {
-		custResponse := GetUser{
+		custResponse := Get_user_resp{
 			Username: customer.Username,
 		}
 		custResponses = append(custResponses, custResponse)
 	}
 
 	return &custResponses, nil
+}
+
+func (r userCore) EditUser(req New_user_req) (*New_user_resp, error) {
+	hashedPassword, err := HashedPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+	u := repo.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: hashedPassword,
+	}
+	newUser, err := r.userRepo.UpdateUser(u)
+	if err != nil {
+		log.Panic(err)
+		return nil, err
+
+	}
+	resp := New_user_resp{
+		User_Id:  newUser.User_Id,
+		Email:    newUser.Email,
+		Username: newUser.Username,
+		Status:   true,
+	}
+
+	return &resp, nil
+}
+
+func (r userCore) DelUser(id string) (*New_user_resp, error) {
+	err := r.userRepo.DeleteUser(id)
+	if err != nil {
+		log.Panic(err)
+		return nil, err
+	}
+	resp := New_user_resp{
+		Status: true,
+	}
+
+	return &resp, nil
 }

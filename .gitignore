@@ -21,3 +21,9 @@
 
 # Go workspace file
 go.work
+
+# YAML files
+*.yaml
+
+# Dockerfile
+Dockerfile

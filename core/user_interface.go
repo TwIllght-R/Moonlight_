@@ -18,8 +18,11 @@ type Login_req struct {
 	Password string `json:"password"`
 }
 
-type GetUser struct {
+type Get_user_resp struct {
+	User_Id  string `json:"user_id"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
 }
 
 // type Login_resp struct {
@@ -28,9 +31,9 @@ type GetUser struct {
 
 type UserCore interface {
 	NewUser(New_user_req) (*New_user_resp, error)
-	GetUser(string) (*GetUser, error)
-	GetUsers() (*[]GetUser, error)
-	// EditUser(New_user_req) (*New_user_resp, error)
-	// DelUser(int) (*New_user_resp, error)
+	GetUser(string) (*Get_user_resp, error)
+	GetUsers() (*[]Get_user_resp, error)
+	EditUser(New_user_req) (*New_user_resp, error)
+	DelUser(string) (*New_user_resp, error)
 	LoginUser(Login_req) (*string, error)
 }

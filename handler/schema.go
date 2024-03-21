@@ -10,9 +10,9 @@ type GraphQLHandler struct {
 	Schema graphql.Schema
 }
 
-func buildSchema(userCore core.UserCore, storyCore core.StoryCore, commentCore core.CommentCore) (graphql.Schema, error) {
+func buildSchema(userCore core.UserCore, storyCore core.ProjectCore, commentCore core.CommentCore) (graphql.Schema, error) {
 	userType := defineUserType()
-	storyType := defineStoryType()
+	storyType := defineProjectType()
 	commentType := defineCommentType()
 	queryType := graphql.NewObject(
 		graphql.ObjectConfig{
@@ -20,8 +20,8 @@ func buildSchema(userCore core.UserCore, storyCore core.StoryCore, commentCore c
 			Fields: graphql.Fields{
 				"GetUser": defineGetUserField(userCore, userType),
 				// "GetUsers": defineGetUsersField(userCore, userType),
-				// "GetStory": defineGetStoryField(storyCore, storyType),
-				"GetStory": defineGetStoryField(storyCore, storyType),
+				// "GetProject": defineGetProjectField(storyCore, storyType),
+				"GetProject": defineGetProjectField(storyCore, storyType),
 			},
 		},
 	)
@@ -31,9 +31,9 @@ func buildSchema(userCore core.UserCore, storyCore core.StoryCore, commentCore c
 		Fields: graphql.Fields{
 			// "CreateUser":  defineCreateUserField(userCore, userType),
 			// "Login":       defineLoginField(userCore),
-			"CreateStory":   defineCreateStoryField(storyCore, storyType),
-			"UpdateStory":   defineUpdateStoryField(storyCore, storyType),
-			"DeleteStory":   defineDeleteStoryField(storyCore, storyType),
+			"CreateProject": defineCreateProjectField(storyCore, storyType),
+			"UpdateProject": defineUpdateProjectField(storyCore, storyType),
+			"DeleteProject": defineDeleteProjectField(storyCore, storyType),
 			"CreateComment": defireCreateCommentField(commentCore, commentType),
 			// Add other mutation fields here
 		},
@@ -48,10 +48,21 @@ func buildSchema(userCore core.UserCore, storyCore core.StoryCore, commentCore c
 	)
 }
 
-func defineStoryType() *graphql.Object {
+var defineTaskType = graphql.NewObject(
+	graphql.ObjectConfig{
+		Name: "Task",
+		Fields: graphql.Fields{
+			"id":     &graphql.Field{Type: graphql.String},
+			"title":  &graphql.Field{Type: graphql.String},
+			"status": &graphql.Field{Type: graphql.String},
+		},
+	},
+)
+
+func defineProjectType() *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
-			Name: "Story",
+			Name: "Project",
 			Fields: graphql.Fields{
 				"id":          &graphql.Field{Type: graphql.String},
 				"title":       &graphql.Field{Type: graphql.String},
@@ -61,6 +72,7 @@ func defineStoryType() *graphql.Object {
 				"status":      &graphql.Field{Type: graphql.String},
 				"labels":      &graphql.Field{Type: graphql.NewList(graphql.String)},
 				"assignedTo":  &graphql.Field{Type: graphql.String},
+				"Tasks":       &graphql.Field{Type: graphql.NewList(defineTaskType)},
 			},
 		},
 	)

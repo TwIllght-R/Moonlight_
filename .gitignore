@@ -27,3 +27,8 @@ go.work
 
 # Dockerfile
 Dockerfile
+
+# Docker Compose
+docker-compose.yml
+#data
+data/

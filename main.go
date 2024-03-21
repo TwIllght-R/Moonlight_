@@ -16,26 +16,27 @@ import (
 )
 
 func main() {
-	client := initDatabase()
+	client := initDatabase().Database("TaskSystems")
 	initTimeZone()
 
-	userCollection := client.Database("Task").Collection("users")       //users
-	storyCollection := client.Database("Task").Collection("storyies")   //tasks
-	commentCollection := client.Database("Task").Collection("comments") //comments
+	userCollection := client.Collection("users")         //users
+	projectCollection := client.Collection("projecties") //tasks
+	commentCollection := client.Collection("comments")   //comments
+	//commentCollection := client.Database("TaskSystems").Collection("comments")   //comments
 
 	//user
 	userRepo := repo.NewUserRepo(userCollection)
 	userCore := core.NewUserCore(userRepo)
 	//task
-	storyRepo := repo.NewStoryRepo(storyCollection)
-	storyCore := core.NewStoryCore(storyRepo)
+	projectRepo := repo.NewProjectRepo(projectCollection)
+	projectCore := core.NewProjectCore(projectRepo)
 	//comment
 	commentRepo := repo.NewCommentRepo(commentCollection)
 	commentCore := core.NewCommentCore(commentRepo)
 
-	storyHandler := handler.NewGraphQLHandler(userCore, storyCore, commentCore)
+	projectHandler := handler.NewGraphQLHandler(userCore, projectCore, commentCore)
 	router := mux.NewRouter()
-	router.HandleFunc("/graphql", storyHandler.ServeHTTP).Methods(http.MethodPost)
+	router.HandleFunc("/graphql", projectHandler.ServeHTTP).Methods(http.MethodPost)
 	fmt.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", router)
 

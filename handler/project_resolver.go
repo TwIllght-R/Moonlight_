@@ -8,9 +8,9 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func defineGetStoryField(storyCore core.StoryCore, storyType *graphql.Object) *graphql.Field {
+func defineGetProjectField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type: storyType,
+		Type: projectType,
 		Args: graphql.FieldConfigArgument{
 			"id": &graphql.ArgumentConfig{
 				Type: graphql.String,
@@ -18,7 +18,7 @@ func defineGetStoryField(storyCore core.StoryCore, storyType *graphql.Object) *g
 		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 			id, _ := params.Args["id"].(string)
-			return storyCore.GetStory(id)
+			return projectCore.GetProject(id)
 		},
 	}
 
@@ -40,14 +40,14 @@ func defineGetUserField(userCore core.UserCore, userType *graphql.Object) *graph
 
 }
 
-// func defineCreateStoryField(storyCore core.StoryCore, storyType *graphql.Object) *graphql.Field {
+// func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {
 // 	return &graphql.Field{
-// 		Type: storyType,
+// 		Type: projectType,
 // 		Args: graphql.FieldConfigArgument{
 // 			"input": &graphql.ArgumentConfig{
 // 				Type: graphql.NewNonNull(graphql.NewInputObject(
 // 					graphql.InputObjectConfig{
-// 						Name: "CreateStoryInput",
+// 						Name: "CreateProjectInput",
 // 						Fields: graphql.InputObjectConfigFieldMap{
 // 							"title": &graphql.InputObjectFieldConfig{
 // 								Type: graphql.NewNonNull(graphql.String),
@@ -69,14 +69,14 @@ func defineGetUserField(userCore core.UserCore, userType *graphql.Object) *graph
 // 			content, _ := input["content"].(string)
 // 			authorID, _ := input["authorID"].(int)
 
-// 			return storyCore.CreateStory(title, content, authorID)
+// 			return projectCore.CreateProject(title, content, authorID)
 // 		},
 // 	}
 // }
 
-func defineCreateStoryField(storyCore core.StoryCore, storyType *graphql.Object) *graphql.Field {
+func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type: storyType,
+		Type: projectType,
 		Args: graphql.FieldConfigArgument{
 			"title": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
@@ -96,15 +96,53 @@ func defineCreateStoryField(storyCore core.StoryCore, storyType *graphql.Object)
 			"assignedTo": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
+			"tasks": &graphql.ArgumentConfig{
+				Type: graphql.NewList(defineTaskType),
+			},
+			// "tasks": &graphql.ArgumentConfig{
+			// 	Type: graphql.NewNonNull(graphql.NewList(graphql.NewInputObject(
+			// 		graphql.InputObjectConfig{
+			// 			Name: "TaskInput",
+			// 			Fields: graphql.InputObjectConfigFieldMap{
+			// 				"title": &graphql.InputObjectFieldConfig{
+			// 					Type: graphql.NewNonNull(graphql.String),
+			// 				},
+			// 				"assignedTo": &graphql.InputObjectFieldConfig{
+			// 					Type: graphql.NewNonNull(graphql.String),
+			// 				},
+			// 			},
+			// 		},
+			// 	))),
+			// },
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			story := core.New_story_req{
+			project := core.New_project_req{
 				Title:       p.Args["title"].(string),
 				Description: p.Args["description"].(string),
 				DueDate:     p.Args["dueDate"].(time.Time),
 				Priority:    p.Args["priority"].(string),
 				AssignedTo:  p.Args["assignedTo"].(string),
 			}
+			tasksArg, ok := p.Args["tasks"].([]interface{})
+			if ok && len(tasksArg) > 0 {
+				var tasks []core.Task
+				for _, task := range tasksArg {
+					if taskMap, ok := task.(map[string]interface{}); ok {
+						taskInput := core.Task{
+							Title:      taskMap["title"].(string),
+							AssignedTo: taskMap["assignedTo"].(string),
+						}
+						tasks = append(tasks, taskInput)
+					} else {
+						return nil, fmt.Errorf("task is not an object")
+					}
+				}
+				project.Tasks = tasks
+				fmt.Println("tasks found", project.Tasks)
+			} else {
+				fmt.Println("tasks not found")
+			}
+
 			labelsArg, ok := p.Args["labels"].([]interface{})
 			if ok {
 				var labels []string
@@ -115,22 +153,23 @@ func defineCreateStoryField(storyCore core.StoryCore, storyType *graphql.Object)
 						return nil, fmt.Errorf("label is not a string")
 					}
 				}
-				story.Labels = labels
+				project.Labels = labels
+				fmt.Println("labels found", project.Labels)
 			}
-
-			storyResp, err := storyCore.NewStory(story)
+			fmt.Println("project", project)
+			projectResp, err := projectCore.NewProject(project)
 			if err != nil {
 				return nil, err
 			}
-			return storyResp, nil
+			return projectResp, nil
 
 		},
 	}
 }
 
-func defineUpdateStoryField(storyCore core.StoryCore, storyType *graphql.Object) *graphql.Field {
+func defineUpdateProjectField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type: storyType,
+		Type: projectType,
 		Args: graphql.FieldConfigArgument{
 			"id": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
@@ -156,7 +195,7 @@ func defineUpdateStoryField(storyCore core.StoryCore, storyType *graphql.Object)
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			story := core.New_story_req{
+			project := core.New_project_req{
 				Title:       p.Args["title"].(string),
 				Description: p.Args["description"].(string),
 				DueDate:     p.Args["dueDate"].(time.Time),
@@ -173,22 +212,38 @@ func defineUpdateStoryField(storyCore core.StoryCore, storyType *graphql.Object)
 						return nil, fmt.Errorf("label is not a string")
 					}
 				}
-				story.Labels = labels
+				project.Labels = labels
 			}
 
-			storyResp, err := storyCore.NewStory(story)
+			tasksArg, ok := p.Args["tasks"].([]interface{})
+			if ok {
+				var tasks []core.Task
+				for _, task := range tasksArg {
+					if taskMap, ok := task.(map[string]interface{}); ok {
+						taskInput := core.Task{
+							Title:      taskMap["title"].(string),
+							AssignedTo: taskMap["assignedTo"].(string),
+						}
+						tasks = append(tasks, taskInput)
+					} else {
+						return nil, fmt.Errorf("task is not an object")
+					}
+				}
+				project.Tasks = tasks
+			}
+			projectResp, err := projectCore.NewProject(project)
 			if err != nil {
 				return nil, err
 			}
-			return storyResp, nil
+			return projectResp, nil
 
 		},
 	}
 }
 
-func defineDeleteStoryField(storyCore core.StoryCore, storyType *graphql.Object) *graphql.Field {
+func defineDeleteProjectField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type: storyType,
+		Type: projectType,
 		Args: graphql.FieldConfigArgument{
 			"id": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
@@ -196,11 +251,11 @@ func defineDeleteStoryField(storyCore core.StoryCore, storyType *graphql.Object)
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			id := p.Args["id"].(string)
-			storyResp, err := storyCore.DeleteStory(id)
+			projectResp, err := projectCore.DeleteProject(id)
 			if err != nil {
 				return nil, err
 			}
-			return storyResp, nil
+			return projectResp, nil
 		},
 	}
 }
@@ -209,7 +264,7 @@ func defireCreateCommentField(commentCore core.CommentCore, commentType *graphql
 	return &graphql.Field{
 		Type: commentType,
 		Args: graphql.FieldConfigArgument{
-			"storyID": &graphql.ArgumentConfig{
+			"projectID": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
 			"content": &graphql.ArgumentConfig{
@@ -221,9 +276,9 @@ func defireCreateCommentField(commentCore core.CommentCore, commentType *graphql
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			comment := core.New_comment_req{
-				StoryID: p.Args["storyID"].(string),
-				Content: p.Args["content"].(string),
-				Author:  p.Args["author"].(string),
+				ProjectID: p.Args["projectID"].(string),
+				Content:   p.Args["content"].(string),
+				Author:    p.Args["author"].(string),
 			}
 			commentResp, err := commentCore.NewComment(comment)
 			if err != nil {

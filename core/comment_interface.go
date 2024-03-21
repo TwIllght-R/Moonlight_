@@ -12,9 +12,9 @@ type Comment_resp struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 type New_comment_req struct {
-	StoryID string `json:"task_id"`
-	Content string `json:"content"`
-	Author  string `json:"author"`
+	ProjectID string `json:"task_id"`
+	Content   string `json:"content"`
+	Author    string `json:"author"`
 }
 type New_comment_resp struct {
 	CommentID string `json:"comment_id"`

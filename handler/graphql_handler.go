@@ -9,7 +9,7 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func NewGraphQLHandler(userCore core.UserCore, storyCore core.StoryCore, commentCore core.CommentCore) *GraphQLHandler {
+func NewGraphQLHandler(userCore core.UserCore, storyCore core.ProjectCore, commentCore core.CommentCore) *GraphQLHandler {
 	schema, err := buildSchema(userCore, storyCore, commentCore)
 	if err != nil {
 		panic(err) // Handle schema initialization error

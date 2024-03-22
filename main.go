@@ -19,6 +19,12 @@ func main() {
 	client := initDatabase().Database("TaskSystems")
 	initTimeZone()
 
+	// graphqlHandler := handler.New(&handler.Config{
+	//     Schema:   &schema,
+	//     Pretty:   true,
+	//     GraphiQL: true, // Enable GraphiQL for testing
+	// })
+
 	userCollection := client.Collection("users")         //users
 	projectCollection := client.Collection("projecties") //tasks
 	commentCollection := client.Collection("comments")   //comments

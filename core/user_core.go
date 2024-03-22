@@ -46,6 +46,15 @@ func (r userCore) LoginUser(loginReq Login_req) (*string, error) {
 }
 
 func (r userCore) NewUser(req New_user_req) (*New_user_resp, error) {
+
+	existingUser, err := r.userRepo.GetUserByEmail(req.Email)
+	if err == nil {
+		return nil, err
+	}
+	if existingUser != nil {
+		return nil, errors.New("user already exists")
+	}
+
 	hashedPassword, err := HashedPassword(req.Password)
 	if err != nil {
 		return nil, err

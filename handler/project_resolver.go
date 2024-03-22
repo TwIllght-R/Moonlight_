@@ -93,27 +93,21 @@ func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql
 			"labels": &graphql.ArgumentConfig{
 				Type: graphql.NewList(graphql.String),
 			},
-			"assignedTo": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.String),
-			},
 			"tasks": &graphql.ArgumentConfig{
-				Type: graphql.NewList(defineTaskType),
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewInputObject(
+					graphql.InputObjectConfig{
+						Name: "TaskInput",
+						Fields: graphql.InputObjectConfigFieldMap{
+							"title": &graphql.InputObjectFieldConfig{
+								Type: graphql.NewNonNull(graphql.String),
+							},
+							"assignedTo": &graphql.InputObjectFieldConfig{
+								Type: graphql.NewNonNull(graphql.String),
+							},
+						},
+					},
+				))),
 			},
-			// "tasks": &graphql.ArgumentConfig{
-			// 	Type: graphql.NewNonNull(graphql.NewList(graphql.NewInputObject(
-			// 		graphql.InputObjectConfig{
-			// 			Name: "TaskInput",
-			// 			Fields: graphql.InputObjectConfigFieldMap{
-			// 				"title": &graphql.InputObjectFieldConfig{
-			// 					Type: graphql.NewNonNull(graphql.String),
-			// 				},
-			// 				"assignedTo": &graphql.InputObjectFieldConfig{
-			// 					Type: graphql.NewNonNull(graphql.String),
-			// 				},
-			// 			},
-			// 		},
-			// 	))),
-			// },
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			project := core.New_project_req{
@@ -121,7 +115,6 @@ func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql
 				Description: p.Args["description"].(string),
 				DueDate:     p.Args["dueDate"].(time.Time),
 				Priority:    p.Args["priority"].(string),
-				AssignedTo:  p.Args["assignedTo"].(string),
 			}
 			tasksArg, ok := p.Args["tasks"].([]interface{})
 			if ok && len(tasksArg) > 0 {
@@ -161,6 +154,7 @@ func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql
 			if err != nil {
 				return nil, err
 			}
+			//fmt.Println("projectResp", projectResp)
 			return projectResp, nil
 
 		},
@@ -189,10 +183,6 @@ func defineUpdateProjectField(projectCore core.ProjectCore, projectType *graphql
 			"labels": &graphql.ArgumentConfig{
 				Type: graphql.NewList(graphql.String),
 			},
-
-			"assignedTo": &graphql.ArgumentConfig{
-				Type: graphql.String,
-			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			project := core.New_project_req{
@@ -200,7 +190,6 @@ func defineUpdateProjectField(projectCore core.ProjectCore, projectType *graphql
 				Description: p.Args["description"].(string),
 				DueDate:     p.Args["dueDate"].(time.Time),
 				Priority:    p.Args["priority"].(string),
-				AssignedTo:  p.Args["assignedTo"].(string),
 			}
 			labelsArg, ok := p.Args["labels"].([]interface{})
 			if ok {

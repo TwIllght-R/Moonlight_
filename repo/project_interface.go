@@ -30,15 +30,15 @@ type Project struct {
 	Description string             `bson:"description"`
 	DueDate     time.Time          `bson:"due_date"`
 	Priority    string             `bson:"priority"`
-	Status      string             `bson:"status"`      //todo doing done
-	Labels      []string           `bson:"labels"`      //tag
-	AssignedTo  string             `bson:"assigned_to"` //[]
-	CreatedAt   time.Time          `bson:"created_at"`
-	UpdatedAt   time.Time          `bson:"updated_at"`
-	IsDeleted   bool               `bson:"is_deleted"`
-	Comments    []Comment          `bson:"comments"`
-	Attachments []Attachment       `bson:"attachments"`
-	Tasks       []Task             `bson:"tasks"`
+	Status      string             `bson:"status"` //todo doing done
+	Labels      []string           `bson:"labels"` //tag
+	//	AssignedTo  []string           `bson:"assigned_to"` //[]
+	CreatedAt   time.Time    `bson:"created_at"`
+	UpdatedAt   time.Time    `bson:"updated_at"`
+	IsDeleted   bool         `bson:"is_deleted"`
+	Comments    []Comment    `bson:"comments"`
+	Attachments []Attachment `bson:"attachments"`
+	Tasks       []Task       `bson:"tasks"`
 }
 
 type ProjectRepo interface {
@@ -72,13 +72,14 @@ type Notification struct {
 }
 
 type Task struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	Title      string             `bson:"title"`
-	Status     string             `bson:"status"` //todo doing done
-	AssignedTo string             `bson:"assigned_to"`
-	CreatedAt  time.Time          `bson:"created_at"`
-	UpdatedAt  time.Time          `bson:"updated_at"`
-	IsDeleted  bool               `bson:"is_deleted"`
+	//ID         primitive.ObjectID `bson:"_id,omitempty"`
+	//  primitive.ObjectID `bson:"project_id"`
+	Title      string    `bson:"title"`
+	Status     string    `bson:"status"` //todo doing done
+	AssignedTo string    `bson:"assigned_to"`
+	CreatedAt  time.Time `bson:"created_at"`
+	UpdatedAt  time.Time `bson:"updated_at"`
+	IsDeleted  bool      `bson:"is_deleted"`
 }
 
 type Attachment struct {

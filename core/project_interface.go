@@ -7,30 +7,36 @@ import (
 )
 
 type New_project_req struct {
-	Title       string       `json:"title"`
-	Description string       `json:"description"`
-	DueDate     time.Time    `json:"due_date"`
-	Priority    string       `json:"priority"`
-	Labels      []string     `json:"labels"`
-	AssignedTo  string       `json:"assigned_to"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	Priority    string    `json:"priority"`
+	Labels      []string  `json:"labels"`
+	//AssignedTo  string       `json:"assigned_to"`
 	Attachments []Attachment `json:"attachments"`
 	Tasks       []Task       `json:"tasks"`
 }
 
 type Update_project_req struct {
-	Title       string       `json:"title"`
-	Description string       `json:"description"`
-	DueDate     time.Time    `json:"due_date"`
-	Priority    string       `json:"priority"`
-	Status      string       `json:"status"`
-	Labels      []string     `json:"labels"`
-	AssignedTo  string       `json:"assigned_to"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	Priority    string    `json:"priority"`
+	Status      string    `json:"status"`
+	Labels      []string  `json:"labels"`
+	//AssignedTo  string       `json:"assigned_to"`
 	Attachments []Attachment `json:"attachments"`
 	Tasks       []Task       `json:"tasks"`
 }
 
 type New_project_resp struct {
-	Title string `json:"title"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	Priority    string    `json:"priority"`
+	Labels      []string  `json:"labels"`
+	//AssignedTo  string    `json:"assigned_to"`
+	Tasks []Task `json:"tasks"`
 }
 
 type Get_project_resp struct {
@@ -41,13 +47,14 @@ type Get_project_resp struct {
 	Priority    string             `json:"priority"`
 	Status      string             `json:"status"`
 	Labels      []string           `json:"labels"`
-	AssignedTo  string             `json:"assigned_to"`
-	Attachments []Attachment       `json:"attachments"`
-	Tasks       []Task             `json:"tasks"`
+	//AssignedTo  string             `json:"assigned_to"`
+	Attachments []Attachment `json:"attachments"`
+	Tasks       []Task       `json:"tasks"`
 }
 
 type Task struct {
 	Title      string `json:"title"`
+	Status     string `json:"status"`
 	AssignedTo string `json:"assigned_to"`
 }
 

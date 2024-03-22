@@ -14,13 +14,27 @@ func NewProjectCore(projectRepo repo.ProjectRepo) ProjectCore {
 }
 
 func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) {
+	// Validate Priority
+	if errVal := ValidatePriority(req.Priority); errVal != nil {
+		return nil, errVal
+	}
+	// if errVal := ValidateStatus(req.Status); errVal != nil {
+	// 	return nil, errVal
+	// }
+	// if errVal := ValidateLabels(req.Labels); errVal != nil {
+	// 	return nil, errVal
+	// }
+	// if errVal := ValidateDate(req.DueDate); errVal != nil {
+	// 	return nil, errVal
+	// }
+	//check if user exists
 
 	// var attachments []repo.Attachment
 	// for _, attachment := range req.Attachments {
 	// 	attachments = append(attachments, repo.Attachment(attachment))
 	// }
 
-	// 	var tasks []repo.Task
+	// var tasks []repo.Task
 	// for _, v := range req.Tasks {
 	//     tasks = append(tasks, repo.Task{
 	//         Title:      v.Title,
@@ -48,7 +62,7 @@ func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) 
 		Priority:    req.Priority,
 		Labels:      req.Labels,
 		Status:      "To Do",
-		AssignedTo:  req.AssignedTo,
+		//AssignedTo:  req.AssignedTo,
 		//Attachments: attachments,
 		Tasks: tasks,
 	}
@@ -58,8 +72,23 @@ func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) 
 		return nil, err
 
 	}
+	newTasks := make([]Task, len(NewProject.Tasks))
+	for i, v := range NewProject.Tasks {
+		newTasks[i] = Task{
+			Title:      v.Title,
+			Status:     v.Status,
+			AssignedTo: v.AssignedTo,
+		}
+	}
 	resp := New_project_resp{
-		Title: NewProject.Title,
+		Title:       NewProject.Title,
+		Description: NewProject.Description,
+		DueDate:     NewProject.DueDate,
+		Priority:    NewProject.Priority,
+		Labels:      NewProject.Labels,
+		//	AssignedTo:  NewProject.AssignedTo,
+		//Attachments: attachments,
+		Tasks: newTasks, // Use the converted tasks slice
 	}
 
 	return &resp, nil
@@ -76,9 +105,12 @@ func (r projectCore) GetProject(id string) (*Get_project_resp, error) {
 	for _, attachment := range project.Attachments {
 		attachments = append(attachments, Attachment(attachment))
 	}
-	// var tasks []Task
-	// for _, task := range project.Tasks {
-	// 	tasks = append(tasks, Task(task)) // Convert task to Task before appending
+	// newTasks := make([]Task, len(project.Tasks))
+	// for i, v := range project.Tasks {
+	// 	newTasks[i] = Task{
+	// 		Title:      v.Title,
+	// 		AssignedTo: v.AssignedTo,
+	// 	}
 	// }
 	resp := Get_project_resp{
 		ID:          project.ID,
@@ -88,9 +120,9 @@ func (r projectCore) GetProject(id string) (*Get_project_resp, error) {
 		Priority:    project.Priority,
 		Status:      project.Status,
 		Labels:      project.Labels,
-		AssignedTo:  project.AssignedTo,
+		//AssignedTo:  project.AssignedTo,
 		Attachments: attachments,
-		//Tasks:       tasks, // Use the converted tasks slice
+		//Tasks:       newTasks,
 	}
 
 	return &resp, nil
@@ -112,7 +144,7 @@ func (r projectCore) ListProject() (*[]Get_project_resp, error) {
 			Priority:    project.Priority,
 			Status:      project.Status,
 			Labels:      project.Labels,
-			AssignedTo:  project.AssignedTo,
+			//	AssignedTo:  project.AssignedTo,
 		})
 	}
 
@@ -127,7 +159,7 @@ func (r projectCore) UpdateProject(id string, req Update_project_req) (*New_proj
 		Priority:    req.Priority,
 		Status:      req.Status,
 		Labels:      req.Labels,
-		AssignedTo:  req.AssignedTo,
+		//	AssignedTo:  req.AssignedTo,
 	}
 	NewProject, err := r.projectRepo.UpdateProject(s)
 	if err != nil {

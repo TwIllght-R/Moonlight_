@@ -52,9 +52,9 @@ var defineTaskType = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "Task",
 		Fields: graphql.Fields{
-			"id":     &graphql.Field{Type: graphql.String},
-			"title":  &graphql.Field{Type: graphql.String},
-			"status": &graphql.Field{Type: graphql.String},
+			"title":      &graphql.Field{Type: graphql.String},
+			"status":     &graphql.Field{Type: graphql.String},
+			"assignedTo": &graphql.Field{Type: graphql.String},
 		},
 	},
 )
@@ -71,8 +71,7 @@ func defineProjectType() *graphql.Object {
 				"priority":    &graphql.Field{Type: graphql.String},
 				"status":      &graphql.Field{Type: graphql.String},
 				"labels":      &graphql.Field{Type: graphql.NewList(graphql.String)},
-				"assignedTo":  &graphql.Field{Type: graphql.String},
-				"Tasks":       &graphql.Field{Type: graphql.NewList(defineTaskType)},
+				"tasks":       &graphql.Field{Type: graphql.NewList(defineTaskType)},
 			},
 		},
 	)

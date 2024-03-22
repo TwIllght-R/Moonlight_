@@ -15,7 +15,6 @@ type projectRepo struct {
 func NewProjectRepo(collection *mongo.Collection) ProjectRepo {
 	return &projectRepo{collection: collection}
 }
-
 func (r *projectRepo) GetProjectByID(id string) (*Project, error) {
 	var project Project
 	objectID, err := primitive.ObjectIDFromHex(id)

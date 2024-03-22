@@ -41,6 +41,8 @@ func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//	fmt.Println(result)
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -51,7 +53,7 @@ func executeQuery(query string, schema graphql.Schema) (*graphql.Result, error) 
 		Schema:        schema,
 		RequestString: query,
 	})
-
+	fmt.Println(result)
 	if len(result.Errors) > 0 {
 		return nil, fmt.Errorf("failed to execute query: %v", result.Errors)
 	}

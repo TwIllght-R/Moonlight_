@@ -24,20 +24,13 @@ func defineGetProjectField(projectCore core.ProjectCore, projectType *graphql.Ob
 
 }
 
-func defineGetUserField(userCore core.UserCore, userType *graphql.Object) *graphql.Field {
+func defineGetProjectsField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type: userType,
-		Args: graphql.FieldConfigArgument{
-			"id": &graphql.ArgumentConfig{
-				Type: graphql.String,
-			},
-		},
+		Type: graphql.NewList(projectType),
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-			id, _ := params.Args["id"].(string)
-			return userCore.GetUser(id)
+			return projectCore.ListProject()
 		},
 	}
-
 }
 
 // func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql.Object) *graphql.Field {

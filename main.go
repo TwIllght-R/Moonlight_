@@ -16,7 +16,11 @@ import (
 )
 
 func main() {
-	client := initDatabase().Database("TaskSystems")
+	// Set a timeout for database operations (10 seconds)
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	client := initDatabase(ctx).Database("TaskSystems")
 	initTimeZone()
 
 	// graphqlHandler := handler.New(&handler.Config{
@@ -26,7 +30,7 @@ func main() {
 	// })
 
 	userCollection := client.Collection("users")         //users
-	projectCollection := client.Collection("projecties") //tasks
+	projectCollection := client.Collection("projecties") //projects
 	commentCollection := client.Collection("comments")   //comments
 	//commentCollection := client.Database("TaskSystems").Collection("comments")   //comments
 
@@ -48,17 +52,17 @@ func main() {
 
 }
 
-func initDatabase() *mongo.Client {
+func initDatabase(ctx context.Context) *mongo.Client {
 	dsn := "mongodb://root:root@localhost:27017"
 	clientOptions := options.Client().ApplyURI(dsn)
 
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		panic(err)
 	}
 
 	// Check the connection
-	err = client.Ping(context.TODO(), nil)
+	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

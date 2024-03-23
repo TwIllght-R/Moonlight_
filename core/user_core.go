@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -55,6 +56,14 @@ func (r userCore) NewUser(req New_user_req) (*New_user_resp, error) {
 		return nil, errors.New("user already exists")
 	}
 
+	existingUser, err = r.userRepo.GetUserByUsername(req.Username)
+	if err == nil {
+		return nil, err
+	}
+	if existingUser != nil {
+		return nil, errors.New("user already exists")
+	}
+
 	hashedPassword, err := HashedPassword(req.Password)
 	if err != nil {
 		return nil, err
@@ -72,7 +81,7 @@ func (r userCore) NewUser(req New_user_req) (*New_user_resp, error) {
 
 	}
 	resp := New_user_resp{
-		User_Id:  newUser.User_Id,
+		User_Id:  newUser.User_Id.String(),
 		Email:    newUser.Email,
 		Username: newUser.Username,
 		Status:   true,
@@ -83,7 +92,11 @@ func (r userCore) NewUser(req New_user_req) (*New_user_resp, error) {
 }
 
 func (r userCore) GetUser(id string) (*Get_user_resp, error) {
-	user, err := r.userRepo.GetUserById(id)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.userRepo.GetUserById(objectID)
 	if err != nil {
 		if err.Error() == mongo.ErrNoDocuments.Error() {
 			return nil, errors.New("user not found")
@@ -104,11 +117,13 @@ func (r userCore) GetUsers() (*[]Get_user_resp, error) {
 		log.Println(err)
 		return nil, err
 	}
-
 	custResponses := []Get_user_resp{}
 	for _, customer := range *user {
 		custResponse := Get_user_resp{
+			User_Id:  ConvertObjectIDToString(customer.User_Id),
 			Username: customer.Username,
+			Email:    customer.Email,
+			Role:     customer.Role,
 		}
 		custResponses = append(custResponses, custResponse)
 	}
@@ -116,26 +131,44 @@ func (r userCore) GetUsers() (*[]Get_user_resp, error) {
 	return &custResponses, nil
 }
 
-func (r userCore) EditUser(req New_user_req) (*New_user_resp, error) {
+func (r userCore) EditUser(req Edit_User_req) (*New_user_resp, error) {
 	hashedPassword, err := HashedPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
-	u := repo.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: hashedPassword,
+	objectID, err := primitive.ObjectIDFromHex(req.User_Id)
+	if err != nil {
+		return nil, err
 	}
-	newUser, err := r.userRepo.UpdateUser(u)
+
+	// u := repo.User{
+	// 	User_Id: req.User_Id,
+	// }
+	// switch {
+	// case req.Username != "":
+	// 	u.Username = req.Username
+	// case req.Email != "":
+	// 	u.Email = req.Email
+	// case req.Password != "":
+	// 	u.Password = hashedPassword
+	// }
+	u := repo.User{
+		User_Id:   objectID,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  hashedPassword,
+		UpdatedAt: time.Now(),
+	}
+	editUser, err := r.userRepo.UpdateUser(u)
 	if err != nil {
 		log.Panic(err)
 		return nil, err
 
 	}
 	resp := New_user_resp{
-		User_Id:  newUser.User_Id,
-		Email:    newUser.Email,
-		Username: newUser.Username,
+		User_Id:  editUser.User_Id.String(),
+		Email:    editUser.Email,
+		Username: editUser.Username,
 		Status:   true,
 	}
 
@@ -143,7 +176,12 @@ func (r userCore) EditUser(req New_user_req) (*New_user_resp, error) {
 }
 
 func (r userCore) DelUser(id string) (*New_user_resp, error) {
-	err := r.userRepo.DeleteUser(id)
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	err = r.userRepo.DeleteUser(objectID)
 	if err != nil {
 		log.Panic(err)
 		return nil, err

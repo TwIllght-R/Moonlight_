@@ -1,5 +1,11 @@
 package handler
 
+import (
+	"Moonlight_/core"
+
+	"github.com/graphql-go/graphql"
+)
+
 // type userHandler struct {
 // 	userCore core.UserCore
 // 	Schema   graphql.Schema
@@ -166,10 +172,150 @@ package handler
 // 	},
 // 	)
 
-// 	return graphql.NewSchema(
-// 		graphql.SchemaConfig{
-// 			Query:    queryType,
-// 			Mutation: mutationType,
-// 		},
-// 	)
-// }
+//		return graphql.NewSchema(
+//			graphql.SchemaConfig{
+//				Query:    queryType,
+//				Mutation: mutationType,
+//			},
+//		)
+//	}
+func defineGetUserField(userCore core.UserCore, userType *graphql.Object) *graphql.Field {
+	return &graphql.Field{
+		Type: userType,
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+			id, _ := params.Args["id"].(string)
+			return userCore.GetUser(id)
+		},
+	}
+
+}
+func defineCreateUserField(userCore core.UserCore, userType *graphql.Object) *graphql.Field {
+	return &graphql.Field{
+		Type: userType,
+		Args: graphql.FieldConfigArgument{
+			"username": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"email": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+			"password": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			username := p.Args["username"].(string)
+			email := p.Args["email"].(string)
+			password := p.Args["password"].(string)
+			user := core.New_user_req{
+				Username: username,
+				Email:    email,
+				Password: password,
+			}
+			userResp, err := userCore.NewUser(user)
+			if err != nil {
+				return nil, err
+			}
+			return userResp, nil
+		},
+	}
+}
+
+func defineLoginField(userCore core.UserCore) *graphql.Field {
+	return &graphql.Field{
+		Type: graphql.String,
+		Args: graphql.FieldConfigArgument{
+			"email": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+			"password": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			email := p.Args["email"].(string)
+			password := p.Args["password"].(string)
+			user := core.Login_req{
+				Email:    email,
+				Password: password,
+			}
+			token, err := userCore.LoginUser(user)
+			if err != nil {
+				return nil, err
+			}
+			return token, nil
+		},
+	}
+}
+
+func defineGetUsersField(userCore core.UserCore, userType *graphql.Object) *graphql.Field {
+	return &graphql.Field{
+		Type: graphql.NewList(userType),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			users, err := userCore.GetUsers()
+			if err != nil {
+				return nil, err
+			}
+			return users, nil
+		},
+	}
+}
+func defineUpdateUserField(userCore core.UserCore, userType *graphql.Object) *graphql.Field {
+	return &graphql.Field{
+		Type: userType,
+		Args: graphql.FieldConfigArgument{
+			"user_id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"username": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+			"email": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+			"password": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			user_id := p.Args["user_id"].(string)
+			username := p.Args["username"].(string)
+			email := p.Args["email"].(string)
+			password := p.Args["password"].(string)
+			user := core.Edit_User_req{
+				User_Id:  user_id,
+				Username: username,
+				Email:    email,
+				Password: password,
+			}
+			userResp, err := userCore.EditUser(user)
+			if err != nil {
+				return nil, err
+			}
+			return userResp, nil
+		},
+	}
+}
+func defineDeleteUserField(userCore core.UserCore, userType *graphql.Object) *graphql.Field {
+	return &graphql.Field{
+		Type: userType,
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			id := p.Args["id"].(string)
+			userResp, err := userCore.DelUser(id)
+			if err != nil {
+				return nil, err
+			}
+			return userResp, nil
+		},
+	}
+}

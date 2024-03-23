@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -38,6 +39,9 @@ func ValidateAssignedTo(assignedTo string) error {
 		return fmt.Errorf("assignedTo is required")
 	}
 	return nil
+}
+func ConvertObjectIDToString(id primitive.ObjectID) string {
+	return id.Hex()
 }
 
 // func isValidPriority(priority string) bool {

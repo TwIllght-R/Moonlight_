@@ -18,10 +18,10 @@ func buildSchema(userCore core.UserCore, storyCore core.ProjectCore, commentCore
 		graphql.ObjectConfig{
 			Name: "Query",
 			Fields: graphql.Fields{
-				"GetUser": defineGetUserField(userCore, userType),
-				// "GetUsers": defineGetUsersField(userCore, userType),
-				// "GetProject": defineGetProjectField(storyCore, storyType),
-				"GetProject": defineGetProjectField(storyCore, storyType),
+				"GetUser":     defineGetUserField(userCore, userType),
+				"GetUsers":    defineGetUsersField(userCore, userType),
+				"GetProject":  defineGetProjectField(storyCore, storyType),
+				"GetProjects": defineGetProjectsField(storyCore, storyType),
 			},
 		},
 	)
@@ -29,8 +29,10 @@ func buildSchema(userCore core.UserCore, storyCore core.ProjectCore, commentCore
 	mutationType := graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
 		Fields: graphql.Fields{
-			// "CreateUser":  defineCreateUserField(userCore, userType),
-			// "Login":       defineLoginField(userCore),
+			"CreateUser":    defineCreateUserField(userCore, userType),
+			"UpdateUser":    defineUpdateUserField(userCore, userType),
+			"DeleteUser":    defineDeleteUserField(userCore, userType),
+			"Login":         defineLoginField(userCore),
 			"CreateProject": defineCreateProjectField(storyCore, storyType),
 			"UpdateProject": defineUpdateProjectField(storyCore, storyType),
 			"DeleteProject": defineDeleteProjectField(storyCore, storyType),
@@ -52,6 +54,7 @@ var defineTaskType = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "Task",
 		Fields: graphql.Fields{
+			"id":         &graphql.Field{Type: graphql.String},
 			"title":      &graphql.Field{Type: graphql.String},
 			"status":     &graphql.Field{Type: graphql.String},
 			"assignedTo": &graphql.Field{Type: graphql.String},
@@ -84,7 +87,10 @@ func defineUserType() *graphql.Object {
 			Fields: graphql.Fields{
 				"id":       &graphql.Field{Type: graphql.String},
 				"username": &graphql.Field{Type: graphql.String},
+				"password": &graphql.Field{Type: graphql.String},
 				"email":    &graphql.Field{Type: graphql.String},
+				"token":    &graphql.Field{Type: graphql.String},
+				"role":     &graphql.Field{Type: graphql.String},
 			},
 		},
 	)

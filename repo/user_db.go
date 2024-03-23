@@ -2,7 +2,7 @@ package repo
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,20 +17,17 @@ func NewUserRepo(collection *mongo.Collection) UserRepo {
 	return &userRepo{collection: collection}
 }
 
-func (r *userRepo) GetUserById(id string) (*User, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(objectID)
+// GetUserById gets a user by id
+func (r *userRepo) GetUserById(id primitive.ObjectID) (*User, error) {
 	var user User
-	err = r.collection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&user)
+	err := r.collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
+// GetUserByEmail gets a user by email
 func (r *userRepo) GetUserByEmail(email string) (*User, error) {
 	var user User
 	filter := bson.M{
@@ -43,9 +40,25 @@ func (r *userRepo) GetUserByEmail(email string) (*User, error) {
 	}
 	return &user, nil
 }
+
+// GetUserByUsername gets a user by username
+func (r *userRepo) GetUserByUsername(username string) (*User, error) {
+	var user User
+	filter := bson.M{
+		"username":   username,
+		"is_deleted": bson.M{"$exists": false},
+	}
+	err := r.collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// CreateUser creates a new user
 func (r *userRepo) CreateUser(user User) (*User, error) {
 	id := primitive.NewObjectID()
-	user.User_Id = id.String()
+	user.User_Id = id
 	_, err := r.collection.InsertOne(context.Background(), user)
 	if err != nil {
 		return nil, err
@@ -54,10 +67,11 @@ func (r *userRepo) CreateUser(user User) (*User, error) {
 
 }
 
+// GetAll gets all users
 func (r *userRepo) GetAll() (*[]User, error) {
 	var users []User
 	filter := bson.M{
-		"is_deleted": bson.M{"$exists": false},
+		"delete_at": bson.M{"$exists": false},
 	}
 	cursor, err := r.collection.Find(context.Background(), filter)
 	if err != nil {
@@ -65,26 +79,45 @@ func (r *userRepo) GetAll() (*[]User, error) {
 	}
 	defer cursor.Close(context.Background())
 
-	err = cursor.All(context.Background(), &users)
-	if err != nil {
+	for cursor.Next(context.Background()) {
+		var user User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err := cursor.Err(); err != nil {
 		return nil, err
 	}
 	return &users, nil
 }
+
+// UpdateUser updates a user
 func (r *userRepo) UpdateUser(user User) (*User, error) {
-	_, err := r.collection.ReplaceOne(context.Background(), bson.M{"_id": user.User_Id}, user)
+	filter := bson.M{"_id": user.User_Id}
+	update := bson.M{
+		"$set": bson.M{
+			"username":   user.Username,
+			"updated_at": user.UpdatedAt,
+			"email":      user.Email,
+			"password":   user.Password,
+			"role":       user.Role,
+		},
+	}
+	result, err := r.collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, err
 	}
+	if result.MatchedCount == 0 {
+		return nil, errors.New("user not found")
+	}
 	return &user, nil
 }
-func (r *userRepo) DeleteUser(id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
+
+// DeleteUser deletes a user
+func (r *userRepo) DeleteUser(id primitive.ObjectID) error {
 	var user User
-	err = r.collection.FindOneAndDelete(context.Background(), bson.M{"_id": objectID}).Decode(&user)
+	err := r.collection.FindOneAndDelete(context.Background(), bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		return err
 	}

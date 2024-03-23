@@ -7,7 +7,7 @@ type New_user_req struct {
 }
 
 type New_user_resp struct {
-	User_Id  string `json:"user_id"`
+	User_Id  string `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Status   bool
@@ -19,10 +19,17 @@ type Login_req struct {
 }
 
 type Get_user_resp struct {
-	User_Id  string `json:"user_id"`
+	User_Id  string `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
+}
+
+type Edit_User_req struct {
+	User_Id  string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // type Login_resp struct {
@@ -33,7 +40,7 @@ type UserCore interface {
 	NewUser(New_user_req) (*New_user_resp, error)
 	GetUser(string) (*Get_user_resp, error)
 	GetUsers() (*[]Get_user_resp, error)
-	EditUser(New_user_req) (*New_user_resp, error)
+	EditUser(Edit_User_req) (*New_user_resp, error)
 	DelUser(string) (*New_user_resp, error)
 	LoginUser(Login_req) (*string, error)
 }

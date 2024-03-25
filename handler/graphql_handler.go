@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"Moonlight_/core"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,18 +8,15 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func NewGraphQLHandler(userCore core.UserCore, storyCore core.ProjectCore, commentCore core.CommentCore) *GraphQLHandler {
-	schema, err := buildSchema(userCore, storyCore, commentCore)
-	if err != nil {
-		panic(err) // Handle schema initialization error
-	}
-
-	return &GraphQLHandler{
-		Schema: schema,
-	}
+type graphQLHandler struct {
+	Schema *graphql.Schema
 }
 
-func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func NewGraphQLHandler(schema *graphql.Schema) *graphQLHandler {
+	return &graphQLHandler{Schema: schema}
+}
+
+func (h *graphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -35,7 +31,7 @@ func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Execute GraphQL query
-	result, err := executeQuery(requestBody.Query, h.Schema)
+	result, err := executeQuery(requestBody.Query, *h.Schema)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -53,7 +49,7 @@ func executeQuery(query string, schema graphql.Schema) (*graphql.Result, error) 
 		Schema:        schema,
 		RequestString: query,
 	})
-	fmt.Println(result)
+	//	fmt.Println(result)
 	if len(result.Errors) > 0 {
 		return nil, fmt.Errorf("failed to execute query: %v", result.Errors)
 	}

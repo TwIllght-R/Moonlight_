@@ -5,11 +5,11 @@ import (
 )
 
 type Comment struct {
-	ID        string    `bson:"_id,omitempty"`
-	TaskID    string    `bson:"task_id"`
-	Content   string    `bson:"content"`
-	Author    string    `bson:"author"`
-	CreatedAt time.Time `bson:"created_at"`
+	ID         string    `bson:"_id,omitempty"`
+	Project_ID string    `bson:"project_id"`
+	Content    string    `bson:"content"`
+	Author     string    `bson:"author"`
+	CreatedAt  time.Time `bson:"created_at"`
 }
 
 type CommentRepo interface {

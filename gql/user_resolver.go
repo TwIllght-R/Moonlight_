@@ -1,4 +1,4 @@
-package handler
+package gql
 
 import (
 	"Moonlight_/core"

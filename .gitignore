@@ -33,3 +33,5 @@ docker-compose.yml
 #data
 data/
 handler/scalar.go
+const.go
+graphQL

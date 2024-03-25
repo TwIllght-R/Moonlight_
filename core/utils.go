@@ -44,6 +44,10 @@ func ConvertObjectIDToString(id primitive.ObjectID) string {
 	return id.Hex()
 }
 
+func ConvertStringToObjectID(id string) (primitive.ObjectID, error) {
+	return primitive.ObjectIDFromHex(id)
+}
+
 // func isValidPriority(priority string) bool {
 //     switch priority {
 //     case "low", "medium", "high", "critical":

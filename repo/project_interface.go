@@ -35,10 +35,8 @@ type Project struct {
 	//	AssignedTo  []string           `bson:"assigned_to"` //[]
 	CreatedAt   time.Time    `bson:"created_at"`
 	UpdatedAt   time.Time    `bson:"updated_at"`
-	IsDeleted   bool         `bson:"is_deleted"`
-	Comments    []Comment    `bson:"comments"`
+	DeleteAt    time.Time    `bson:"deleted_at"`
 	Attachments []Attachment `bson:"attachments"`
-	Tasks       []Task       `bson:"tasks"`
 }
 
 type ProjectRepo interface {
@@ -57,11 +55,11 @@ type Progress struct {
 }
 
 type TimeEntry struct {
-	ID        string    `bson:"_id,omitempty"`
-	TaskID    string    `bson:"task_id"`
-	StartTime time.Time `bson:"start_time"`
-	EndTime   time.Time `bson:"end_time"`
-	Duration  int       `bson:"duration"` // Duration in seconds
+	ID         string    `bson:"_id,omitempty"`
+	Project_ID string    `bson:"project_id"`
+	StartTime  time.Time `bson:"start_time"`
+	EndTime    time.Time `bson:"end_time"`
+	Duration   int       `bson:"duration"` // Duration in seconds
 }
 
 type Notification struct {
@@ -69,17 +67,6 @@ type Notification struct {
 	TaskID  string    `bson:"task_id"`
 	Content string    `bson:"content"`
 	Created time.Time `bson:"created_at"`
-}
-
-type Task struct {
-	//ID         primitive.ObjectID `bson:"_id,omitempty"`
-	//  primitive.ObjectID `bson:"project_id"`
-	Title      string    `bson:"title"`
-	Status     string    `bson:"status"` //todo doing done
-	AssignedTo string    `bson:"assigned_to"`
-	CreatedAt  time.Time `bson:"created_at"`
-	UpdatedAt  time.Time `bson:"updated_at"`
-	IsDeleted  bool      `bson:"is_deleted"`
 }
 
 type Attachment struct {

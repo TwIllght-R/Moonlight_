@@ -2,6 +2,7 @@ package main
 
 import (
 	"Moonlight_/core"
+	"Moonlight_/gql"
 	"Moonlight_/handler"
 	"Moonlight_/repo"
 	"context"
@@ -28,7 +29,7 @@ func main() {
 	//     Pretty:   true,
 	//     GraphiQL: true, // Enable GraphiQL for testing
 	// })
-
+	taskCollection := client.Collection("tasks")         //tasks
 	userCollection := client.Collection("users")         //users
 	projectCollection := client.Collection("projecties") //projects
 	commentCollection := client.Collection("comments")   //comments
@@ -38,15 +39,38 @@ func main() {
 	userRepo := repo.NewUserRepo(userCollection)
 	userCore := core.NewUserCore(userRepo)
 	//task
+	taskRepo := repo.NewTaskRepo(taskCollection)
+	taskCore := core.NewTaskCore(taskRepo)
+	//project
 	projectRepo := repo.NewProjectRepo(projectCollection)
-	projectCore := core.NewProjectCore(projectRepo)
+	projectCore := core.NewProjectCore(projectRepo) //project need user ,task ,comment
 	//comment
 	commentRepo := repo.NewCommentRepo(commentCollection)
 	commentCore := core.NewCommentCore(commentRepo)
 
-	projectHandler := handler.NewGraphQLHandler(userCore, projectCore, commentCore)
+	// userSchema, _ := graphQL.NewUserSchema(userCore)
+	// taskSchema, _ := graphQL.NewTaskSchema(taskCore)
+
+	// mergedSchema, err := graphql.MergeSchemas(graphql.MergeConfig{
+	// 	Schemas: []*graphql.Schema{userSchema, taskSchema},
+	// })
+	// if err != nil {
+	// 	// handle error
+	// }
+	//graphqlHandler := graphQL.NewGraphQLHandler(mergedSchema)
+	//	userSchema, _ := handler.NewUserSchema(userCore)
+	//userHandler := handler.NewUserHandler(userSchema)
+	gqlConfig := gql.GraphQLConfig{
+		UserCore:    userCore,
+		StoryCore:   projectCore,
+		TaskCore:    taskCore,
+		CommentCore: commentCore,
+	}
+	gqlSchema := gql.BuildSchema(gqlConfig)
+	gqlHandler := handler.NewGraphQLHandler(gqlSchema)
 	router := mux.NewRouter()
-	router.HandleFunc("/graphql", projectHandler.ServeHTTP).Methods(http.MethodPost)
+	router.HandleFunc("/graphql", gqlHandler.ServeHTTP).Methods(http.MethodPost)
+	//router.HandleFunc("/graphql2", graphqlHandler.ServeHTTP).Methods(http.MethodPost)
 	fmt.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", router)
 

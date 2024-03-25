@@ -2,8 +2,6 @@ package core
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type New_project_req struct {
@@ -14,10 +12,11 @@ type New_project_req struct {
 	Labels      []string  `json:"labels"`
 	//AssignedTo  string       `json:"assigned_to"`
 	Attachments []Attachment `json:"attachments"`
-	Tasks       []Task       `json:"tasks"`
+	// Tasks       []Task       `json:"tasks"`
 }
 
 type Update_project_req struct {
+	ID          string    `json:"project_id"` //for update
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	DueDate     time.Time `json:"due_date"`
@@ -26,7 +25,7 @@ type Update_project_req struct {
 	Labels      []string  `json:"labels"`
 	//AssignedTo  string       `json:"assigned_to"`
 	Attachments []Attachment `json:"attachments"`
-	Tasks       []Task       `json:"tasks"`
+	//Tasks       []Task       `json:"tasks"`
 }
 
 type New_project_resp struct {
@@ -36,27 +35,27 @@ type New_project_resp struct {
 	Priority    string    `json:"priority"`
 	Labels      []string  `json:"labels"`
 	//AssignedTo  string    `json:"assigned_to"`
-	Tasks []Task `json:"tasks"`
+	//Tasks []Task `json:"tasks"`
 }
 
 type Get_project_resp struct {
-	ID          primitive.ObjectID `json:"_id,omitempty"`
-	Title       string             `json:"title"`
-	Description string             `json:"description"`
-	DueDate     time.Time          `json:"due_date"`
-	Priority    string             `json:"priority"`
-	Status      string             `json:"status"`
-	Labels      []string           `json:"labels"`
+	ID          string    `json:"project_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	Priority    string    `json:"priority"`
+	Status      string    `json:"status"`
+	Labels      []string  `json:"labels"`
 	//AssignedTo  string             `json:"assigned_to"`
 	Attachments []Attachment `json:"attachments"`
-	Tasks       []Task       `json:"tasks"`
+	//	Tasks       []Task       `json:"tasks"`
 }
 
-type Task struct {
-	Title      string `json:"title"`
-	Status     string `json:"status"`
-	AssignedTo string `json:"assigned_to"`
-}
+// type Task struct {
+// 	Title      string `json:"title"`
+// 	Status     string `json:"status"`
+// 	AssignedTo string `json:"assigned_to"`
+// }
 
 type Attachment struct {
 	Filename string `json:"filename"`
@@ -68,6 +67,6 @@ type ProjectCore interface {
 	NewProject(New_project_req) (*New_project_resp, error)
 	GetProject(string) (*Get_project_resp, error)
 	ListProject() (*[]Get_project_resp, error)
-	UpdateProject(string, Update_project_req) (*New_project_resp, error)
+	UpdateProject(Update_project_req) (*New_project_resp, error)
 	DeleteProject(string) (*Get_project_resp, error)
 }

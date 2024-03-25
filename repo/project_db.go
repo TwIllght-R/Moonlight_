@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,7 +32,7 @@ func (r *projectRepo) GetProjectByID(id string) (*Project, error) {
 func (r *projectRepo) GetAll() (*[]Project, error) {
 	var stories []Project
 	filter := bson.M{
-		"is_deleted": bson.M{"$exists": false},
+		"delete_at": bson.M{"$exists": false},
 	}
 	cur, err := r.collection.Find(context.Background(), filter)
 	if err != nil {
@@ -61,9 +62,24 @@ func (r *projectRepo) CreateProject(project Project) (*Project, error) {
 }
 
 func (r *projectRepo) UpdateProject(project Project) (*Project, error) {
-	_, err := r.collection.ReplaceOne(context.Background(), bson.M{"_id": project.ID}, project)
+	filter := bson.M{"_id": project.ID}
+	update := bson.M{
+		"$set": bson.M{
+			"title":       project.Title,
+			"description": project.Description,
+			"due_date":    project.DueDate,
+			"priority":    project.Priority,
+			"status":      project.Status,
+			"labels":      project.Labels,
+			"updated_at":  project.UpdatedAt,
+		},
+	}
+	result, err := r.collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, err
+	}
+	if result.MatchedCount == 0 {
+		return nil, errors.New("project not found")
 	}
 	return &project, nil
 }

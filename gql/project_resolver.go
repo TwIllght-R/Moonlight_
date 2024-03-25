@@ -1,4 +1,4 @@
-package handler
+package gql
 
 import (
 	"Moonlight_/core"
@@ -12,13 +12,14 @@ func defineGetProjectField(projectCore core.ProjectCore, projectType *graphql.Ob
 	return &graphql.Field{
 		Type: projectType,
 		Args: graphql.FieldConfigArgument{
-			"id": &graphql.ArgumentConfig{
+			"project_id": &graphql.ArgumentConfig{
 				Type: graphql.String,
 			},
 		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-			id, _ := params.Args["id"].(string)
+			id, _ := params.Args["project_id"].(string)
 			return projectCore.GetProject(id)
+
 		},
 	}
 
@@ -86,21 +87,21 @@ func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql
 			"labels": &graphql.ArgumentConfig{
 				Type: graphql.NewList(graphql.String),
 			},
-			"tasks": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.NewList(graphql.NewInputObject(
-					graphql.InputObjectConfig{
-						Name: "TaskInput",
-						Fields: graphql.InputObjectConfigFieldMap{
-							"title": &graphql.InputObjectFieldConfig{
-								Type: graphql.NewNonNull(graphql.String),
-							},
-							"assignedTo": &graphql.InputObjectFieldConfig{
-								Type: graphql.NewNonNull(graphql.String),
-							},
-						},
-					},
-				))),
-			},
+			// "tasks": &graphql.ArgumentConfig{
+			// 	Type: graphql.NewNonNull(graphql.NewList(graphql.NewInputObject(
+			// 		graphql.InputObjectConfig{
+			// 			Name: "TaskInput",
+			// 			Fields: graphql.InputObjectConfigFieldMap{
+			// 				"title": &graphql.InputObjectFieldConfig{
+			// 					Type: graphql.NewNonNull(graphql.String),
+			// 				},
+			// 				"assignedTo": &graphql.InputObjectFieldConfig{
+			// 					Type: graphql.NewNonNull(graphql.String),
+			// 				},
+			// 			},
+			// 		},
+			// 	))),
+			// },
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			project := core.New_project_req{
@@ -109,25 +110,25 @@ func defineCreateProjectField(projectCore core.ProjectCore, projectType *graphql
 				DueDate:     p.Args["dueDate"].(time.Time),
 				Priority:    p.Args["priority"].(string),
 			}
-			tasksArg, ok := p.Args["tasks"].([]interface{})
-			if ok && len(tasksArg) > 0 {
-				var tasks []core.Task
-				for _, task := range tasksArg {
-					if taskMap, ok := task.(map[string]interface{}); ok {
-						taskInput := core.Task{
-							Title:      taskMap["title"].(string),
-							AssignedTo: taskMap["assignedTo"].(string),
-						}
-						tasks = append(tasks, taskInput)
-					} else {
-						return nil, fmt.Errorf("task is not an object")
-					}
-				}
-				project.Tasks = tasks
-				fmt.Println("tasks found", project.Tasks)
-			} else {
-				fmt.Println("tasks not found")
-			}
+			// tasksArg, ok := p.Args["tasks"].([]interface{})
+			// if ok && len(tasksArg) > 0 {
+			// 	var tasks []core.Task
+			// 	for _, task := range tasksArg {
+			// 		if taskMap, ok := task.(map[string]interface{}); ok {
+			// 			taskInput := core.Task{
+			// 				Title:      taskMap["title"].(string),
+			// 				AssignedTo: taskMap["assignedTo"].(string),
+			// 			}
+			// 			tasks = append(tasks, taskInput)
+			// 		} else {
+			// 			return nil, fmt.Errorf("task is not an object")
+			// 		}
+			// 	}
+			// 	project.Tasks = tasks
+			// 	fmt.Println("tasks found", project.Tasks)
+			// } else {
+			// 	fmt.Println("tasks not found")
+			// }
 
 			labelsArg, ok := p.Args["labels"].([]interface{})
 			if ok {
@@ -158,7 +159,7 @@ func defineUpdateProjectField(projectCore core.ProjectCore, projectType *graphql
 	return &graphql.Field{
 		Type: projectType,
 		Args: graphql.FieldConfigArgument{
-			"id": &graphql.ArgumentConfig{
+			"project_id": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
 			"title": &graphql.ArgumentConfig{
@@ -173,16 +174,21 @@ func defineUpdateProjectField(projectCore core.ProjectCore, projectType *graphql
 			"priority": &graphql.ArgumentConfig{
 				Type: graphql.String,
 			},
+			"status": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
 			"labels": &graphql.ArgumentConfig{
 				Type: graphql.NewList(graphql.String),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			project := core.New_project_req{
+			project := core.Update_project_req{
+				ID:          p.Args["project_id"].(string),
 				Title:       p.Args["title"].(string),
 				Description: p.Args["description"].(string),
 				DueDate:     p.Args["dueDate"].(time.Time),
 				Priority:    p.Args["priority"].(string),
+				Status:      p.Args["status"].(string),
 			}
 			labelsArg, ok := p.Args["labels"].([]interface{})
 			if ok {
@@ -197,23 +203,23 @@ func defineUpdateProjectField(projectCore core.ProjectCore, projectType *graphql
 				project.Labels = labels
 			}
 
-			tasksArg, ok := p.Args["tasks"].([]interface{})
-			if ok {
-				var tasks []core.Task
-				for _, task := range tasksArg {
-					if taskMap, ok := task.(map[string]interface{}); ok {
-						taskInput := core.Task{
-							Title:      taskMap["title"].(string),
-							AssignedTo: taskMap["assignedTo"].(string),
-						}
-						tasks = append(tasks, taskInput)
-					} else {
-						return nil, fmt.Errorf("task is not an object")
-					}
-				}
-				project.Tasks = tasks
-			}
-			projectResp, err := projectCore.NewProject(project)
+			// tasksArg, ok := p.Args["tasks"].([]interface{})
+			// if ok {
+			// 	var tasks []core.Task
+			// 	for _, task := range tasksArg {
+			// 		if taskMap, ok := task.(map[string]interface{}); ok {
+			// 			taskInput := core.Task{
+			// 				Title:      taskMap["title"].(string),
+			// 				AssignedTo: taskMap["assignedTo"].(string),
+			// 			}
+			// 			tasks = append(tasks, taskInput)
+			// 		} else {
+			// 			return nil, fmt.Errorf("task is not an object")
+			// 		}
+			// 	}
+			// 	project.Tasks = tasks
+			// }
+			projectResp, err := projectCore.UpdateProject(project)
 			if err != nil {
 				return nil, err
 			}
@@ -227,12 +233,12 @@ func defineDeleteProjectField(projectCore core.ProjectCore, projectType *graphql
 	return &graphql.Field{
 		Type: projectType,
 		Args: graphql.FieldConfigArgument{
-			"id": &graphql.ArgumentConfig{
+			"project_id": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			id := p.Args["id"].(string)
+			id := p.Args["project_id"].(string)
 			projectResp, err := projectCore.DeleteProject(id)
 			if err != nil {
 				return nil, err

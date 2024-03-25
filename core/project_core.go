@@ -3,6 +3,7 @@ package core
 import (
 	"Moonlight_/repo"
 	"log"
+	"time"
 )
 
 type projectCore struct {
@@ -44,14 +45,14 @@ func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) 
 	// }
 
 	// preallocate the slice for performance
-	tasks := make([]repo.Task, len(req.Tasks))
-	for i, v := range req.Tasks {
-		tasks[i] = repo.Task{
-			Title:      v.Title,
-			AssignedTo: v.AssignedTo,
-			Status:     "To Do",
-		}
-	}
+	// tasks := make([]repo.Task, len(req.Tasks))
+	// for i, v := range req.Tasks {
+	// 	tasks[i] = repo.Task{
+	// 		Title:      v.Title,
+	// 		AssignedTo: v.AssignedTo,
+	// 		Status:     "To Do",
+	// 	}
+	// }
 
 	//check err
 
@@ -64,7 +65,7 @@ func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) 
 		Status:      "To Do",
 		//AssignedTo:  req.AssignedTo,
 		//Attachments: attachments,
-		Tasks: tasks,
+		//Tasks: tasks,
 	}
 	NewProject, err := r.projectRepo.CreateProject(s)
 	if err != nil {
@@ -72,14 +73,14 @@ func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) 
 		return nil, err
 
 	}
-	newTasks := make([]Task, len(NewProject.Tasks))
-	for i, v := range NewProject.Tasks {
-		newTasks[i] = Task{
-			Title:      v.Title,
-			Status:     v.Status,
-			AssignedTo: v.AssignedTo,
-		}
-	}
+	// newTasks := make([]Task, len(NewProject.Tasks))
+	// for i, v := range NewProject.Tasks {
+	// 	newTasks[i] = Task{
+	// 		Title:      v.Title,
+	// 		Status:     v.Status,
+	// 		AssignedTo: v.AssignedTo,
+	// 	}
+	// }
 	resp := New_project_resp{
 		Title:       NewProject.Title,
 		Description: NewProject.Description,
@@ -88,7 +89,7 @@ func (r projectCore) NewProject(req New_project_req) (*New_project_resp, error) 
 		Labels:      NewProject.Labels,
 		//	AssignedTo:  NewProject.AssignedTo,
 		//Attachments: attachments,
-		Tasks: newTasks, // Use the converted tasks slice
+		//Tasks: newTasks, // Use the converted tasks slice
 	}
 
 	return &resp, nil
@@ -113,7 +114,7 @@ func (r projectCore) GetProject(id string) (*Get_project_resp, error) {
 	// 	}
 	// }
 	resp := Get_project_resp{
-		ID:          project.ID,
+		ID:          ConvertObjectIDToString(project.ID),
 		Title:       project.Title,
 		Description: project.Description,
 		DueDate:     project.DueDate,
@@ -137,7 +138,7 @@ func (r projectCore) ListProject() (*[]Get_project_resp, error) {
 	var resp []Get_project_resp
 	for _, project := range *stories {
 		resp = append(resp, Get_project_resp{
-			ID:          project.ID,
+			ID:          ConvertObjectIDToString(project.ID),
 			Title:       project.Title,
 			Description: project.Description,
 			DueDate:     project.DueDate,
@@ -151,14 +152,20 @@ func (r projectCore) ListProject() (*[]Get_project_resp, error) {
 	return &resp, nil
 }
 
-func (r projectCore) UpdateProject(id string, req Update_project_req) (*New_project_resp, error) {
+func (r projectCore) UpdateProject(req Update_project_req) (*New_project_resp, error) {
+	pid, err := ConvertStringToObjectID(req.ID)
+	if err != nil {
+		return nil, err
+	}
 	s := repo.Project{
+		ID:          pid,
 		Title:       req.Title,
 		Description: req.Description,
 		DueDate:     req.DueDate,
 		Priority:    req.Priority,
 		Status:      req.Status,
 		Labels:      req.Labels,
+		UpdatedAt:   time.Now(),
 		//	AssignedTo:  req.AssignedTo,
 	}
 	NewProject, err := r.projectRepo.UpdateProject(s)
@@ -181,7 +188,7 @@ func (r projectCore) DeleteProject(id string) (*Get_project_resp, error) {
 		return nil, err
 	}
 	resp := Get_project_resp{
-		ID: project.ID,
+		ID: ConvertObjectIDToString(project.ID),
 	}
 
 	return &resp, nil
